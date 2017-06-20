@@ -4,8 +4,7 @@ sudo: false
 
 matrix:
   include:
-    # TODO Add Python2.7 testing once compatibility issues are fixed.
-    #- { os: linux, env: PYTHON_VERSION=2.7 }
+    - { os: linux, env: PYTHON_VERSION=2.7 }
     - { os: linux, env: PYTHON_VERSION=3.4 }
     - { os: linux, env: PYTHON_VERSION=3.5 }
     # Mac OS-X testing disabled since conda/glotzer/hoomd does not run
@@ -21,9 +20,11 @@ install:
   - source activate travis_env
 
 script:
-  - python -m my_project.init 0
-  - python -m my_project.status -d
-  - python -m my_project.submit --test --ppn 1
-  - python scripts/run.py auto
-  - python -m my_project.status -d
-  - python -m jupyter nbconvert --to html --execute analysis/notebook.ipynb
+  - python src/init.py 0
+  - python src/project.py status -d -p 1
+  - python src/project.py submit --test --ppn 1
+  - python src/operations.py initialize
+  - python src/project.py run    # estimate/sample
+  - python src/project.py run    # estimate/sample
+  - python src/project.py status -d
+  - python -m jupyter nbconvert --to html --execute src/notebook.ipynb
