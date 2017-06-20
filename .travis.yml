@@ -13,7 +13,7 @@ matrix:
 
 install:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install md5sha1sum; fi
-  - source devtools/travis-ci/install_conda.sh
+  - source .devtools/travis-ci/install_conda.sh
   - conda config --add channels glotzer
   - conda config --add channels conda-forge
   - conda create -y -n travis_env python=$PYTHON_VERSION signac signac-flow hoomd gsd jupyter matplotlib
