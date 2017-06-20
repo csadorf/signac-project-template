@@ -17,7 +17,7 @@ def initialize(job):
         hoomd.context.initialize('')
     with job:
         with hoomd.context.SimulationContext():
-            n = ceil(pow(job.sp.N, 1/3))
+            n = int(ceil(pow(job.sp.N, 1.0/3)))
             assert n**3 == job.sp.N
             hoomd.init.create_lattice(unitcell=hoomd.lattice.sc(a=1.0), n=n)
             hoomd.dump.gsd('init.gsd', period=None, group=hoomd.group.all())
