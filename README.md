@@ -61,7 +61,6 @@ Other modules:
   * ``src/environment.py`` - Custom **environment** definitions
   * ``src/util/misc.py`` - **Misc**ellaneous utility functions
   * ``src/util/hoomd.py`` - Various utility functions to be used with **HOOMD**-blue
-  * ``src/util/tabulate.py`` - Functions for **table** formatting
 
 # Merge upstream updates
 
