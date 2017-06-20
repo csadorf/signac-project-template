@@ -5,8 +5,9 @@ sudo: false
 matrix:
   include:
     - { os: linux, env: PYTHON_VERSION=2.7 }
-    - { os: linux, env: PYTHON_VERSION=3.4 }
+    #- { os: linux, env: PYTHON_VERSION=3.4 }
     - { os: linux, env: PYTHON_VERSION=3.5 }
+    - { os: linux, env: PYTHON_VERSION=3.6 }
     # Mac OS-X testing disabled since conda/glotzer/hoomd does not run
     # on any of the Travis CI images.
     #- { os: osx, env: PYTHON_VERSION=3.5 }
