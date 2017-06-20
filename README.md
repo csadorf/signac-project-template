@@ -1,6 +1,6 @@
 # About
 
-This repository provides a template for [signac-flow](https://bitbucket.org/glotzer/signac-flow) projects based on the simple data management framework [signac](https://signac.readthedocs.io/).
+This repository provides a template for [signac-flow](https://signac-flow.readthedocs.io) projects based on the simple data management framework [signac](https://signac.readthedocs.io/).
 
 # Documentation
 
@@ -8,7 +8,7 @@ The template project features the generation of a p-V phase diagram of a simulat
 The LJ fluid is sampled via molecular dynamics using the HOOMD-blue particle simulation toolkit.
 
 The [signac](https://signac.readthedocs.io) data management framework itself does not enforce any specific workflow.
-Basic workflow management functions are implemented in the complementary [signac-flow](https://bitbucket.org/glotzer/signac-flow) package, which provides the `FlowProject` class.
+Basic workflow management functions are implemented in the complementary [signac-flow](https://signac-flow.readthedocs.io) package, which provides the `FlowProject` class.
 This template is designed to demonstrate how to specialize a `FlowProject` to implement a workflow on top of a **signac** project.
 
 Beginners should start by looking through the [signac documentation](https://signac.readthedocs.io), especially the [tutorial](https://signac.readthedocs.io/en/latest/tutorial.html) and the [signac-flowdocumentation](https://signac-flow.readthedocs.io).
