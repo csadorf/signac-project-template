@@ -1,8 +1,12 @@
-"""Define the project's workflow logic."""
-from math import ceil
+"""Define the project's workflow logic.
 
+Execute this script directly from the command line, to view your project's
+status, execute operations and submit them to a cluster. See also:
+
+    $ python src/project.py --help
+"""
 from flow import FlowProject
-from flow import JobOperation
+from flow import staticlabel
 
 import logging
 
@@ -11,81 +15,60 @@ logger = logging.getLogger(__name__)
 
 class MyProject(FlowProject):
 
-    def classify(self, job):
-        "Classify this job by yielding 'labels' based on the job's status."
-        num_steps = job.document.get('sample_step', 0)
-        if job.isfile('init.gsd'):
-            yield 'initialized'
-        if 'volume_estimate' in job.document:
-            yield 'estimated'
-        if num_steps > 0:
-            yield 'started'
-        if num_steps >= 5000 and job.isfile('dump.log'):
-            yield 'sampled'
+# Definition of project-related labels (classification)
 
-    def next_operation(self, job):
-        "Determine the next job, based on the job's data."
-        labels = set(self.classify(job))
+    @staticlabel()
+    def initialized(job):
+        return job.isfile('init.gsd')
 
-        def op(name):
-            "Construct default job operation."
-            return JobOperation(name, job, 'python scripts/run.py {} {}'.format(name, job))
+    @staticlabel()
+    def estimated(job):
+        return 'volume_estimate' in job.document
 
-        if 'initialized' not in labels:
-            return op('initialize')
-        if 'estimated' not in labels:
-            return op('estimate')
-        if 'sampled' not in labels:
-            return op('sample')
+    @staticlabel()
+    def started(job):
+        return job.document.get('sample_step', 0) > 0
 
-    def submit_user(self, env, _id, operations, walltime, np, ppn,
-                    serial=False, force=False, **kwargs):
-        "Write commands for operations to job script."
-        # Calculate the total number of required processors
-        np_total = np if serial else np * len(operations)
-        # Calculate the total number of required nodes
-        nn = ceil(np_total / ppn)
+    @staticlabel()
+    def sampled(job):
+        return job.document.get('sample_step', 0) >= 5000
 
-        if not force:  # Perform basic check concerning the node utilization.
-            usage = np * len(operations) / nn / ppn
-            if usage < 0.9:
-                raise RuntimeError("Bad node utilization!")
+# Adding of project-related operations to the constructor (workflow)
 
-        # Create a submission script.
-        sscript = env.script(_id=_id, walltime=walltime, nn=nn, ppn=ppn,
-                             serial=serial, **kwargs)
+    def __init__(self, *args, **kwargs):
+        super(MyProject, self).__init__(*args, **kwargs)
 
-        # Add some whitespace
-        sscript.writeline()
-        # Don't use uninitialized environment variables.
-        sscript.writeline('set -u')
-        # Exit on errors.
-        sscript.writeline('set -e')
-        # Writing HOOMD_WALLTIME_STOP
-        # Does not hurt even if we don't use HOOMD-blue.
-        walltime_seconds = 24 * 3600 * walltime.days + walltime.seconds
-        sscript.writeline(
-            'export HOOMD_WALLTIME_STOP=$((`date +%s` + {}))'.format(
-                int(0.9 * walltime_seconds)))
-        # Switch into the project root directory
-        sscript.writeline('cd {}'.format(self.root_directory()))
-        sscript.writeline()
+        self.add_operation(
+            name='initialize',
+            cmd='python src/operations.py initialize {job._id}',
+            post=[self.initialized])
 
-        # Iterate over all job-operations and write the command to the script
-        for op in operations:
-            self.write_human_readable_statepoint(sscript, op.job)
-            sscript.write_cmd(op.cmd, np=np, bg=not serial)
+        self.add_operation(
+            name='estimate-volume',
+            cmd='python src/operations.py estimate {job._id}',
+            pre=[self.initialized],
+            post=[self.estimated])
 
-        # Wait until all processes have finished
-        sscript.writeline('wait')
+        self.add_operation(
+            name='sample',
+            cmd='python src/operations.py sample {job._id}',
+            pre=[self.initialized],
+            post=[self.estimated])
 
-        # Submit the script to the environment specific scheduler
-        return env.submit(sscript, **kwargs)
+# Overload functions for execution script generation (optional)
+
+    def write_script_header(self, script, walltime=None, **kwargs):
+        super(MyProject, self).write_script_header(script, **kwargs)
+
+        # We want to use HOOMD-blue's walltime stop command in case
+        # there is a walltime provided.
+        if walltime is not None:
+            walltime_seconds = 24 * 3600 * walltime.days + walltime.seconds
+            script.writeline("# Ensure to stop hoomd in time...")
+            script.writeline(
+                'export HOOMD_WALLTIME_STOP=$((`date +%s` + {}))'.format(
+                    int(0.9 * walltime_seconds)))
 
 
-def get_project(*args, **kwargs):
-    """Find a project configuration and return the associated project.
-
-    This is a wrapper for: :py:meth:`.MyProject.get_project`
-    """
-    return MyProject.get_project(*args, **kwargs)
+if __name__ == '__main__':
+    MyProject().main()

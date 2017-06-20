@@ -1,21 +1,18 @@
 """This module contains the operation functions for this project.
 
-Functions defined in this module can be executed using the
-:py:mod:`.run` module.
+Functions defined in this module can be executed directly from the
+command line with
+
+    $ python src/operations.py {operation} [job_id [job_id ...]]
+
+See also: $ python src/operations.py --help
 """
-import logging
-from math import ceil
-
-from util.hoomd import redirect_log, store_meta_data
-
-
-logger = logging.getLogger(__name__)
-STEPS = 5000
 
 
 def initialize(job):
     "Initialize the simulation configuration."
     import hoomd
+    from math import ceil
     if hoomd.context.exec_conf is None:
         hoomd.context.initialize('')
     with job:
@@ -36,8 +33,10 @@ def estimate(job):
 
 def sample(job):
     "Sample operation."
+    import logging
     import hoomd
     from hoomd import md
+    from util.hoomd import redirect_log, store_meta_data
     if hoomd.context.exec_conf is None:
         hoomd.context.initialize('')
     with job:
@@ -55,9 +54,9 @@ def sample(job):
                     P=job.sp.p, tauP=job.sp.tauP)
                 hoomd.analyze.log('dump.log', ['volume'], 100, phase=0)
                 try:
-                    hoomd.run_upto(STEPS)
+                    hoomd.run_upto(5000)
                 except hoomd.WalltimeLimitReached:
-                    logger.warning("Reached walltime limit.")
+                    logging.warning("Reached walltime limit.")
                 finally:
                     gsd_restart.write_restart()
                     job.document['sample_step'] = hoomd.get_step()
@@ -66,17 +65,23 @@ def sample(job):
 
 def auto(job):
     "This is a meta-operation to execute multiple operations."
-    from my_project import get_project
-    project = get_project()
-    logger.info("Running meta operation 'auto' for job '{}'.".format(job))
+    from project import MyProject
+    import logging
+    project = MyProject()
+    logging.info("Running meta operation 'auto' for job '{}'.".format(job))
     for i in range(10):
         next_op = project.next_operation(job)
         if next_op is None:
-            logger.info("No next operation, exiting.")
+            logging.info("No next operation, exiting.")
             break
         else:
-            logger.info("Running next operation '{}'...".format(next_op))
+            logging.info("Running next operation '{}'...".format(next_op))
             func = globals()[next_op.name]
             func(job)
     else:
-        logger.warning("auto: Reached max # operations limit!")
+        logging.warning("auto: Reached max # operations limit!")
+
+
+if __name__ == '__main__':
+    import flow
+    flow.run()

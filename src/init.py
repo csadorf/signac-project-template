@@ -12,8 +12,7 @@ import numpy as np
 
 
 def main(args, random_seed):
-    project = signac.init_project('MyProject')
-    statepoints_init = []
+    project = signac.init_project('Ideal-Gas-Example-Project')
     for replication_index in range(args.num_replicas):
         for p in np.linspace(0.5, 5.0, 10):
             statepoint = dict(
@@ -37,10 +36,6 @@ def main(args, random_seed):
                     # barostat coupling constant
                     tauP=1.0)
             project.open_job(statepoint).init()
-            statepoints_init.append(statepoint)
-
-    # Writing statepoints to hash table as backup
-    project.write_statepoints(statepoints_init)
 
 
 if __name__ == '__main__':
