@@ -46,14 +46,13 @@ class MyProject(FlowProject):
         self.add_operation(
             name='estimate-volume',
             cmd='python src/operations.py estimate {job._id}',
-            pre=[self.initialized],
             post=[self.estimated])
 
         self.add_operation(
             name='sample',
             cmd='python src/operations.py sample {job._id}',
             pre=[self.initialized],
-            post=[self.estimated])
+            post=[self.sampled])
 
 # Overload functions for execution script generation (optional)
 
