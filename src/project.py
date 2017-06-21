@@ -13,12 +13,13 @@ from flow import staticlabel
 
 import logging
 
+
 logger = logging.getLogger(__name__)
 
 
 class MyProject(FlowProject):
 
-# Definition of project-related labels (classification)
+    # Definition of project-related labels (classification)
 
     @staticlabel()
     def initialized(job):
@@ -36,7 +37,7 @@ class MyProject(FlowProject):
     def sampled(job):
         return job.document.get('sample_step', 0) >= 5000
 
-# Adding of project-related operations to the constructor (workflow)
+    # Adding of project-related operations to the constructor (workflow)
 
     def __init__(self, *args, **kwargs):
         super(MyProject, self).__init__(*args, **kwargs)
@@ -57,7 +58,7 @@ class MyProject(FlowProject):
             pre=[self.initialized],
             post=[self.sampled])
 
-# Overload functions for execution script generation (optional)
+    # Overload functions for execution script generation (optional)
 
     def write_script_header(self, script, walltime=None, **kwargs):
         super(MyProject, self).write_script_header(script, **kwargs)
