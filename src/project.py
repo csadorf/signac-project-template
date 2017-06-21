@@ -11,11 +11,6 @@ from flow import staticlabel
 
 # import environments # uncomment to use custom environments
 
-import logging
-
-
-logger = logging.getLogger(__name__)
-
 
 class MyProject(FlowProject):
 
