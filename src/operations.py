@@ -36,31 +36,28 @@ def sample(job):
     import logging
     import hoomd
     from hoomd import md
-    from util.hoomd import redirect_log, store_meta_data
     if hoomd.context.exec_conf is None:
         hoomd.context.initialize('')
     with job:
-        with redirect_log(job):
-            with hoomd.context.SimulationContext():
-                hoomd.init.read_gsd('init.gsd', restart='restart.gsd')
-                group = hoomd.group.all()
-                gsd_restart = hoomd.dump.gsd(
-                    'restart.gsd', truncate=True, period=100, phase=0, group=group)
-                lj = md.pair.lj(r_cut=job.sp.r_cut, nlist=md.nlist.cell())
-                lj.pair_coeff.set('A', 'A', epsilon=job.sp.epsilon, sigma=job.sp.sigma)
-                md.integrate.mode_standard(dt=0.005)
-                md.integrate.npt(
-                    group=group, kT=job.sp.kT, tau=job.sp.tau,
-                    P=job.sp.p, tauP=job.sp.tauP)
-                hoomd.analyze.log('dump.log', ['volume'], 100, phase=0)
-                try:
-                    hoomd.run_upto(5000)
-                except hoomd.WalltimeLimitReached:
-                    logging.warning("Reached walltime limit.")
-                finally:
-                    gsd_restart.write_restart()
-                    job.document['sample_step'] = hoomd.get_step()
-                    store_meta_data(job)
+        with hoomd.context.SimulationContext():
+            hoomd.init.read_gsd('init.gsd', restart='restart.gsd')
+            group = hoomd.group.all()
+            gsd_restart = hoomd.dump.gsd(
+                'restart.gsd', truncate=True, period=100, phase=0, group=group)
+            lj = md.pair.lj(r_cut=job.sp.r_cut, nlist=md.nlist.cell())
+            lj.pair_coeff.set('A', 'A', epsilon=job.sp.epsilon, sigma=job.sp.sigma)
+            md.integrate.mode_standard(dt=0.005)
+            md.integrate.npt(
+                group=group, kT=job.sp.kT, tau=job.sp.tau,
+                P=job.sp.p, tauP=job.sp.tauP)
+            hoomd.analyze.log('dump.log', ['volume'], 100, phase=0)
+            try:
+                hoomd.run_upto(5000)
+            except hoomd.WalltimeLimitReached:
+                logging.warning("Reached walltime limit.")
+            finally:
+                gsd_restart.write_restart()
+                job.document['sample_step'] = hoomd.get_step()
 
 
 def auto(job):
