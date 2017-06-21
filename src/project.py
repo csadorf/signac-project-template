@@ -56,7 +56,7 @@ class MyProject(FlowProject):
     # Overload functions for execution script generation (optional)
 
     def write_script_header(self, script, walltime=None, **kwargs):
-        super(MyProject, self).write_script_header(script, **kwargs)
+        super(MyProject, self).write_script_header(script, walltime=walltime, **kwargs)
 
         # We want to use HOOMD-blue's walltime stop command in case
         # there is a walltime provided.
